@@ -6,7 +6,7 @@ import styles from './styles'
 import ActionsTable from './components/ActionsTable'
 import startsWith from 'lodash.startswith'
 
-function Home() {
+const Home: React.FC = () => {
   const { storage, getStocks, symbolSearch } = useTwelvedata()
 
   const nameStocks = useMemo(
