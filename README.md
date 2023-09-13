@@ -1,4 +1,7 @@
-# React + TypeScript + Vite
+<p style="text-align: center; font-size: 32px; font-weight: bold;">
+<a href="https://ghezdev.github.io/challenge-metafar/">Challenge Metafar</a></p>
+
+## React + TypeScript + Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
