@@ -1,15 +1,34 @@
-import { useState } from 'react'
+import { Container, CssBaseline } from '@mui/material'
+import { ThemeProvider } from '@mui/material/styles'
+import {
+  Route,
+  RouterProvider,
+  createBrowserRouter,
+  createRoutesFromElements,
+} from 'react-router-dom'
+import theme from './theme'
+import Home from './pages/home'
+import { TwelvedataProvider } from './contexts/twelvedata'
+
+const router = createBrowserRouter(
+  createRoutesFromElements(
+    <Route path="/challenge-metafar/" element={<Home />} />
+  )
+)
 
 function App() {
-  const [count, setCount] = useState(0);
-
   return (
-    <>
-      <h1>Vite + React</h1>
-      <button onClick={() => setCount((prev) => prev + 1)}>+</button>
-      <p>{count}</p>
-    </>
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
+      <TwelvedataProvider>
+        <Container sx={styles}>
+          <RouterProvider router={router} />
+        </Container>
+      </TwelvedataProvider>
+    </ThemeProvider>
   )
 }
+
+const styles = { py: 10, height: '100vh', width: '100vw' }
 
 export default App
