@@ -1,13 +1,5 @@
 import axios from 'axios'
-import React, {
-  createContext,
-  useContext,
-  useState,
-  useReducer,
-  Dispatch,
-} from 'react'
-import { StocksData } from '../../types/twelvedata'
-import uniq from 'lodash.uniq'
+import React, { createContext, useContext, useReducer, Dispatch } from 'react'
 import { IAction, IState, reducer } from '../../storage/stocks'
 
 interface Props {
@@ -19,13 +11,15 @@ interface QueryGetStocks {
   name?: string
 }
 
-// Definimos la forma del contexto
 interface TwelvedataContextType {
   storage: IState
   dispatch: Dispatch<IAction>
-  optionsNameSymbols: string[]
   getStocks: (query: QueryGetStocks) => Promise<void>
   symbolSearch: (symbol: string) => Promise<void>
+  getTimeSerieBySymbol: (
+    symbol: string,
+    params?: IQueryGetTimeSerie
+  ) => Promise<void>
 }
 
 const TwelvedataContext = createContext<TwelvedataContextType | undefined>(
@@ -35,13 +29,21 @@ const TwelvedataContext = createContext<TwelvedataContextType | undefined>(
 const initialState: IState = {
   stocks: [],
   symbols: [],
+  timeSerie: [],
+  timeSerieLoading: true,
   stocksLoading: true,
   symbolsLoading: false,
 }
 
+interface IQueryGetTimeSerie {
+  startDate?: string
+  endDate?: string
+  interval?: string
+  outputsize?: string
+}
+
 export const TwelvedataProvider: React.FC<Props> = ({ children }) => {
   const [storage, dispatch] = useReducer(reducer, initialState)
-  const [optionsNameSymbols, setOptionsNameSymbols] = useState<string[]>([])
 
   const getStocks = async (query: QueryGetStocks): Promise<void> => {
     dispatch({ type: 'FETCH_STOCKS_REQUEST' })
@@ -52,10 +54,6 @@ export const TwelvedataProvider: React.FC<Props> = ({ children }) => {
         params: query,
       })
       dispatch({ type: 'FETCH_STOCKS_SUCCESS', payload: response })
-      const nameSymbols = uniq(
-        (response as StocksData[]).map((value) => value.name)
-      )
-      setOptionsNameSymbols(nameSymbols)
     } catch (error) {
       console.error('Error fetching data:', error)
       dispatch({ type: 'FETCH_STOCKS_FAILURE' })
@@ -77,9 +75,50 @@ export const TwelvedataProvider: React.FC<Props> = ({ children }) => {
     }
   }
 
+  const getTimeSerieBySymbol = async (
+    symbol: string,
+    params?: IQueryGetTimeSerie
+  ): Promise<void> => {
+    dispatch({ type: 'FETCH_TIMESERIE_REQUEST' })
+    try {
+      const apikey = import.meta.env.PROD
+        ? import.meta.env.VITE_APIKEY || '6a2fb1533991410c9c2422676f014085'
+        : import.meta.env.VITE_APIKEY
+
+      if (!import.meta.env.PROD && import.meta.env.VITE_APIKEY === undefined)
+        throw new Error('Hace falta un api key')
+
+      const { data } = await axios.get(
+        'https://api.twelvedata.com/time_series',
+        {
+          params: {
+            symbol,
+            apikey,
+            start_date: params?.startDate,
+            end_date: params?.endDate,
+            interval: params?.interval,
+            outputsize: params?.outputsize,
+          },
+        }
+      )
+      if (data.code !== 200) throw new Error(data.message)
+
+      dispatch({ type: 'FETCH_TIMESERIE_SUCCESS', payload: data.values })
+    } catch (error) {
+      console.error('Error fetching data:', error)
+      dispatch({ type: 'FETCH_TIMESERIE_FAILURE' })
+    }
+  }
+
   return (
     <TwelvedataContext.Provider
-      value={{ storage, dispatch, getStocks, symbolSearch, optionsNameSymbols }}
+      value={{
+        storage,
+        dispatch,
+        getStocks,
+        symbolSearch,
+        getTimeSerieBySymbol,
+      }}
     >
       {children}
     </TwelvedataContext.Provider>

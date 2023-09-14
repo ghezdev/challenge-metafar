@@ -18,3 +18,12 @@ export interface SymbolSearchData {
   country: string
   currency: string
 }
+
+export interface ITimeSerieData {
+  datetime: string
+  open: string
+  high: string
+  low: string
+  close: string
+  volume: string
+}
