@@ -6,6 +6,6 @@ export default defineConfig({
   plugins: [react()],
   base: '/challenge-metafar/',
   server: {
-    port: 3000
-  }
+    port: 3000,
+  },
 })

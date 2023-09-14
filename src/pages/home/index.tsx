@@ -5,6 +5,7 @@ import Searcher from './components/Searcher'
 import styles from './styles'
 import ActionsTable from './components/ActionsTable'
 import startsWith from 'lodash.startswith'
+import { StocksData } from '../../types/twelvedata'
 
 const Home: React.FC = () => {
   const { storage, getStocks, symbolSearch } = useTwelvedata()
@@ -19,19 +20,21 @@ const Home: React.FC = () => {
   )
 
   const [symbolToSearch, setSymbolToSearch] = useState<string>('')
-  const [nameToSearch, setNameToSearch] = useState<string>('')
   const [optionsName, setOptionsName] = useState<string[]>([])
+  const [dataTable, setDataTable] = useState<StocksData[]>([])
 
   useEffect(() => {
-    getStocks({
-      symbol: symbolToSearch || undefined,
-      name: nameToSearch || undefined,
-    })
-  }, [symbolToSearch, nameToSearch])
+    getStocks({ symbol: symbolToSearch || undefined })
+  }, [symbolToSearch])
 
   useEffect(() => {
     setOptionsName(nameStocks.slice(0, 30))
+    setDataTable(storage.stocks)
   }, [nameStocks])
+
+  useEffect(() => {
+    setDataTable(storage.stocks)
+  }, [storage.stocks])
 
   return (
     <Box sx={styles.container}>
@@ -61,11 +64,21 @@ const Home: React.FC = () => {
             )
             setOptionsName(optionsFiltered.slice(0, 30))
           }}
-          onChange={(value) => setNameToSearch(value)}
+          onChange={(value) => {
+            const dataTableFiltered = storage.stocks.filter(
+              (stock) => stock.name === value
+            )
+            setDataTable(
+              value && dataTableFiltered ? dataTableFiltered : storage.stocks
+            )
+          }}
           loading={storage.stocksLoading}
         />
       </Box>
-      <ActionsTable stocks={storage.stocks} loading={storage.stocksLoading} />
+      <ActionsTable
+        stocks={dataTable}
+        loading={storage.stocksLoading || dataTable.length === 0}
+      />
     </Box>
   )
 }
